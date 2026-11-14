@@ -1,0 +1,87 @@
+---
+import Base from '../layouts/Base.astro';
+import { useT } from '../i18n/ui';
+
+const pt = useT('pt');
+const en = useT('en');
+---
+
+<Base lang="pt" title={`404 — ${pt('404.title')}`} noindex>
+	<main id="main" class="lost">
+		<div class="lost-panel" aria-hidden="true"></div>
+		<div class="container lost-inner">
+			<p class="lost-code" aria-hidden="true">404</p>
+			<h1>{pt('404.title')}</h1>
+			<p class="lost-help">{pt('404.text')}</p>
+			<p class="lost-en" lang="en">{en('404.title')}. {en('404.text')}</p>
+			<div class="lost-ctas">
+				<a class="btn btn--light" href="/"><span>{pt('404.home')}</span></a>
+			</div>
+		</div>
+	</main>
+</Base>
+
+<style>
+	.lost {
+		position: relative;
+		overflow: hidden;
+		display: grid;
+		align-items: center;
+		min-height: 100svh;
+		padding-block: 3rem;
+		isolation: isolate;
+	}
+
+	.lost-panel {
+		position: absolute;
+		z-index: -1;
+		inset: -10% -30% -10% 45%;
+		background: linear-gradient(160deg, var(--azure), var(--royal) 55%, var(--deep));
+		transform: skewX(var(--skew));
+	}
+
+	.lost-inner {
+		display: grid;
+		justify-items: start;
+		gap: 1rem;
+	}
+
+	.lost-code {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: clamp(7rem, 5rem + 12vw, 14rem);
+		line-height: 0.8;
+		color: transparent;
+		-webkit-text-stroke: 2px color-mix(in srgb, var(--accent) 60%, transparent);
+	}
+
+	h1 {
+		font-size: var(--title-lg);
+		font-weight: 900;
+		text-transform: uppercase;
+		text-shadow: 0.06em 0.06em 0 var(--royal);
+	}
+
+	.lost-help {
+		max-width: 40ch;
+		padding: 0.5rem 1rem;
+		border-left: 4px solid var(--accent);
+		background: var(--panel);
+		font-size: var(--step-1);
+	}
+
+	.lost-en {
+		max-width: 52ch;
+		color: var(--muted);
+		font-size: var(--step--1);
+	}
+
+	.lost-ctas {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem 1rem;
+		margin-top: 0.5rem;
+		padding-left: 0.4rem;
+	}
+</style>
