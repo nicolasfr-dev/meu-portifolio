@@ -5,6 +5,7 @@ import Toasts from '../components/Toasts.astro';
 import AchievementsPanel from '../components/AchievementsPanel.astro';
 import { profile, type Lang } from '../data/profile';
 import { useT, altLang, pathFor } from '../i18n/ui';
+import { withBase } from '../utils/url';
 
 interface Props {
 	lang: Lang;
@@ -30,7 +31,7 @@ const jsonLd = {
 	alternateName: profile.fullName,
 	address: { '@type': 'PostalAddress', addressLocality: 'Fortaleza', addressCountry: 'BR' },
 	jobTitle: profile.role[lang],
-	url: site.href,
+	url: new URL(pathFor('pt'), site).href,
 	email: `mailto:${profile.email}`,
 	sameAs: profile.socials.filter((s) => s.url.startsWith('http')).map((s) => s.url),
 };
@@ -56,8 +57,8 @@ const jsonLd = {
 				</>
 			)
 		}
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+		<link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+		<link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
 
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content={title} />

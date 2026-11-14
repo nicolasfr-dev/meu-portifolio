@@ -6,6 +6,8 @@
  * ============================================================
  */
 
+import { withBase } from '../utils/url';
+
 export type Lang = 'pt' | 'en';
 export type L10n = { pt: string; en: string };
 
@@ -21,12 +23,12 @@ export const profile = {
 	available: true,
 	email: 'nicolasfr.dev@gmail.com',
 	/** PDF em /public. Atenção: o arquivo inclui seu telefone. */
-	cvUrl: '/curriculo-nicolas-freire.pdf',
+	cvUrl: withBase('/curriculo-nicolas-freire.pdf'),
 	/**
 	 * Foto recortada (fundo transparente) em /public, em WebP. Vazio mostra uma silhueta.
 	 * `photoSize` são as dimensões reais do arquivo (evita o layout pular enquanto carrega).
 	 */
-	photo: '/nicolas.webp',
+	photo: withBase('/nicolas.webp'),
 	photoSize: { width: 591, height: 1330 },
 	/** Música do "Tocando agora" no hero. */
 	nowPlaying: { song: '[Sua música favorita]', artist: '[Artista]' }, // TODO

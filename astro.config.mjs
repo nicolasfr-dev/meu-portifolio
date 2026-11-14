@@ -3,8 +3,11 @@ import { defineConfig, fontProviders } from 'astro/config';
 
 // https://astro.build/config
 export default defineConfig({
-	// TODO: troque pelo domínio final (usado em canonical, hreflang e Open Graph)
-	site: 'https://nicolasfreire.dev',
+	// GitHub Pages do repositório: https://nicolasfr-dev.github.io/meu-portifolio/
+	site: 'https://nicolasfr-dev.github.io',
+	base: '/meu-portifolio',
+	// GitHub Pages sem Actions: Settings → Pages → Deploy from a branch → main /docs
+	outDir: './docs',
 	i18n: {
 		defaultLocale: 'pt',
 		locales: ['pt', 'en'],

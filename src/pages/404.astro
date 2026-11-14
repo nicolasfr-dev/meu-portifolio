@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { useT } from '../i18n/ui';
+import { useT, pathFor } from '../i18n/ui';
 
 const pt = useT('pt');
 const en = useT('en');
@@ -15,7 +15,7 @@ const en = useT('en');
 			<p class="lost-help">{pt('404.text')}</p>
 			<p class="lost-en" lang="en">{en('404.title')}. {en('404.text')}</p>
 			<div class="lost-ctas">
-				<a class="btn btn--light" href="/"><span>{pt('404.home')}</span></a>
+				<a class="btn btn--light" href={pathFor('pt')}><span>{pt('404.home')}</span></a>
 			</div>
 		</div>
 	</main>

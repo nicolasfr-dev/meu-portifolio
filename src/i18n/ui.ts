@@ -1,4 +1,5 @@
 import type { Lang, L10n } from '../data/profile';
+import { withBase } from '../utils/url';
 
 export const ui = {
 	pt: {
@@ -316,4 +317,4 @@ export function l(value: L10n, lang: Lang) {
 }
 
 export const altLang = (lang: Lang): Lang => (lang === 'pt' ? 'en' : 'pt');
-export const pathFor = (lang: Lang) => (lang === 'pt' ? '/' : '/en/');
+export const pathFor = (lang: Lang) => withBase(lang === 'pt' ? '/' : '/en/');
