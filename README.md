@@ -43,3 +43,7 @@ Quase tudo o que é "seu" está em **`src/data/profile.ts`**: nome, foto, bio, a
 - Diálogos nativos (`<dialog>`), skip link, alvos de toque ≥ 44px.
 - Sem animações contínuas caras (sem canvas de fundo, blur ou blend); fontes servidas pelo próprio site.
 - Funciona sem JavaScript (as mecânicas de game ficam desativadas).
+
+## Licença
+
+O código é **source-available**, não open source: está sob a [PolyForm Strict 1.0.0](LICENSE), que permite ler e estudar o código, mas não modificá-lo, redistribuí-lo nem publicar cópias do site. A foto, o currículo e os dados pessoais em `src/data/profile.ts` têm todos os direitos reservados.
