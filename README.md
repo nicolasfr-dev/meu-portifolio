@@ -8,7 +8,7 @@ Portfólio pessoal com interface inspirada na UI de Persona 3 Reload: menu de co
 | :------------ | :---------------------------------------- |
 | `bun install` | Instala dependências                      |
 | `bun dev`     | Servidor local em `localhost:4321`        |
-| `bun build`   | Gera o site estático em `./dist/`         |
+| `bun build`   | Gera o site estático em `./docs/`         |
 | `bun preview` | Pré-visualiza o build                     |
 
 Sem bun? `npx astro dev` funciona igual.
