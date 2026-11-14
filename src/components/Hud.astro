@@ -1,0 +1,801 @@
+---
+import Key from "./Key.astro";
+import Flag from "./Flag.astro";
+import { type Lang } from "../data/profile";
+import { useT, altLang, pathFor } from "../i18n/ui";
+
+interface Props {
+    lang: Lang;
+    nav: { id: string; label: string; help: string }[];
+}
+
+const { lang, nav } = Astro.props;
+const t = useT(lang);
+const other = altLang(lang);
+---
+
+<header class="hud">
+    <div class="hud-inner">
+        <!-- Calendário: preenchido no cliente com a data, o período do dia e a fase da lua reais -->
+        <div class="cal-wrap">
+            <!-- a palavra gigante ao fundo: dia útil, fim de semana, feriado ou Hora Sombria.
+                 Ocupa espaço de verdade, então o que vem ao lado começa depois dela -->
+            <span class="cal-word" data-cal-word aria-hidden="true"></span>
+            <div class="cal-row">
+            <a
+                class="cal"
+                href="#start"
+                data-calendar
+                aria-label={t("nav.quests")}
+            >
+                <span class="cal-date" data-cal-date></span>
+                <span class="cal-day">
+                    <span data-cal-day></span>
+                </span>
+                <span class="cal-tod" data-cal-tod></span>
+            </a>
+            <button
+                class="cal-moon"
+                type="button"
+                data-poke
+                data-cal-moon-label
+                aria-label=""
+            >
+                <svg viewBox="0 0 34 34" aria-hidden="true">
+                    <circle
+                        class="cal-moon-dark"
+                        cx="17"
+                        cy="17"
+                        r="15"
+                    ></circle>
+                    <path class="cal-moon-lit" data-cal-moon d=""></path>
+                    <circle
+                        class="cal-moon-ring"
+                        cx="17"
+                        cy="17"
+                        r="15"
+                        fill="none"
+                        stroke-width="2"
+                    ></circle>
+                </svg>
+            </button>
+            </div>
+        </div>
+
+        <nav class="hud-nav" aria-label={t("a11y.sections")}>
+            {nav.map((n) => (
+                <a href={`#${n.id}`} data-nav>
+                    {n.label}
+                </a>
+            ))}
+        </nav>
+
+        <div class="hud-progress" aria-label={t("hud.progress")}>
+            <span class="hud-lv">
+                {t("hud.lv")} <b data-lv>01</b>
+            </span>
+            <div class="bar hud-bar" data-xp style="--value:0"></div>
+            <span class="hud-levelup tag" data-levelup aria-hidden="true">
+                <span>{t("levelup")}</span>
+            </span>
+        </div>
+
+        <div class="hud-actions">
+            <button
+                class="hud-btn"
+                type="button"
+                data-open="achievements"
+                data-trophy
+                aria-label={t("hud.achievements")}
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linejoin="round"
+                >
+                    <path d="M7 4h10v5a5 5 0 0 1-10 0z"></path>
+                    <path d="M7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4M12 14v4M8 20h8"></path>
+                </svg>
+                <span class="hud-score" data-score>
+                    0000
+                </span>
+            </button>
+            <button
+                class="hud-btn hud-sound"
+                type="button"
+                data-sound-toggle
+                aria-pressed="false"
+                aria-label={t("hud.sound")}
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M4 9h4l5-4v14l-5-4H4z"></path>
+                    <path
+                        class="wave"
+                        d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"
+                    ></path>
+                    <path class="mute" d="M17 9l5 6M22 9l-5 6"></path>
+                </svg>
+            </button>
+            <a
+                class="hud-btn hud-lang"
+                href={pathFor(other)}
+                hreflang={other}
+                lang={other}
+                data-lang-switch
+                aria-label={t("hud.lang")}
+            >
+                <Flag code={lang === "pt" ? "br" : "us"} />
+            </a>
+            <button
+                class="hud-btn hud-menu"
+                type="button"
+                data-open="pause"
+                aria-label={t("hud.menu")}
+            >
+                <Key name="esc" lang={lang} class="hud-esc" />
+                <svg
+                    class="hud-menu-icon"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                >
+                    <path d="M5 7h14M3 12h14M1 17h14"></path>
+                </svg>
+                <span class="hud-menu-label" aria-hidden="true">
+                    {t("hud.menu")}
+                </span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<dialog class="modal pause" id="pause-dialog" aria-labelledby="pause-title">
+    <div class="pause-body">
+        <div class="pause-head">
+            <h2 id="pause-title">{t("hud.menu")}</h2>
+            <button
+                class="icon-btn"
+                type="button"
+                data-close
+                aria-label={t("achievements.close")}
+            >
+                ✕
+            </button>
+        </div>
+        <nav aria-label="Menu">
+            <ul class="cmd" role="list" data-cmd>
+                {nav.map((n, i) => (
+                    <li style={`--i:${i}`}>
+                        <a href={`#${n.id}`} data-help={n.help}>
+                            <span class="cmd-label">
+                                <span class="cursor" aria-hidden="true" />
+                                {n.label}
+                            </span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </nav>
+        <p class="pause-help" data-cmd-help aria-live="polite">
+            {nav[0]?.help}
+        </p>
+        <div class="pause-system">
+            <h3>{t("system.title")}</h3>
+            <div class="pause-actions">
+                <button
+                    class="btn btn--sm btn--light"
+                    type="button"
+                    data-open="achievements"
+                >
+                    <span>{t("hud.achievements")}</span>
+                </button>
+                <button
+                    class="btn btn--sm btn--ghost"
+                    type="button"
+                    data-sound-toggle
+                    aria-pressed="false"
+                >
+                    <span>{t("hud.sound")}</span>
+                </button>
+                <a
+                    class="btn btn--sm btn--ghost"
+                    href={pathFor(other)}
+                    hreflang={other}
+                    lang={other}
+                    data-lang-switch
+                >
+                    <span>{t("system.lang")}</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</dialog>
+
+<style is:global>
+    .hud {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 800;
+        padding-top: env(safe-area-inset-top);
+        background: var(--hud-bg);
+        box-shadow: 0 1px 0 var(--line);
+    }
+
+    .hud-inner {
+        display: flex;
+        align-items: center;
+        gap: clamp(0.5rem, 1.5vw, 1.25rem);
+        height: var(--hud-h);
+        padding-inline: max(0.75rem, env(safe-area-inset-left))
+            max(0.75rem, env(safe-area-inset-right));
+        max-width: calc(var(--maxw) + 6rem);
+        margin-inline: auto;
+    }
+
+    /* ---- Calendário, como o do canto da tela no jogo ---- */
+    /* palavra e calendário empilhados na mesma célula: a largura é a do maior dos dois */
+    .cal-wrap {
+        display: grid;
+        align-items: center;
+        height: 100%;
+        isolation: isolate;
+    }
+
+    .cal-word,
+    .cal-row {
+        grid-area: 1 / 1;
+    }
+
+    .cal-row {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .cal-word {
+        margin-left: 1.5rem;
+        translate: 0 12%;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 900;
+        font-size: 3rem;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--azure);
+        opacity: 0.35;
+        pointer-events: none;
+    }
+
+    .cal {
+        display: grid;
+        grid-template-columns: auto auto;
+        grid-template-areas:
+            "date day"
+            "tod tod";
+        align-items: start;
+        column-gap: 0.15rem;
+        color: var(--ink);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    /* data branca com contorno escuro */
+    .cal-date {
+        grid-area: date;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 900;
+        font-size: 2rem;
+        line-height: 0.95;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        text-shadow:
+            2px 0 0 var(--shadow),
+            -2px 0 0 var(--shadow),
+            0 2px 0 var(--shadow),
+            0 -2px 0 var(--shadow),
+            3px 3px 0 var(--shadow);
+    }
+
+    /* dia da semana dentro de um triângulo preto invertido */
+    .cal-day {
+        grid-area: day;
+        display: grid;
+        justify-items: center;
+        width: 2.4rem;
+        height: 1.6rem;
+        padding-top: 0.05rem;
+        background: #000;
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 0.8rem;
+        line-height: 1;
+        text-transform: capitalize;
+        color: var(--ink);
+    }
+
+    .cal-tod {
+        grid-area: tod;
+        justify-self: end;
+        display: none;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1rem;
+        line-height: 1.1;
+        color: var(--accent);
+        text-shadow: 1px 1px 0 var(--shadow);
+    }
+
+    .cal-moon {
+        flex: none;
+        width: 2.1rem;
+        height: 2.1rem;
+        transition: transform 0.2s;
+    }
+
+    /* lua amarela sobre disco preto com aro amarelo */
+    .cal-moon-dark {
+        fill: #000;
+    }
+
+    .cal-moon-lit {
+        fill: var(--moon);
+    }
+
+    .cal-moon-ring {
+        stroke: var(--moon);
+    }
+
+    .cal-moon:hover {
+        transform: rotate(-12deg) scale(1.08);
+    }
+
+    .cal-moon.poked {
+        animation: moon-poke 0.3s ease;
+    }
+
+    @keyframes moon-poke {
+        50% {
+            transform: scale(0.85);
+        }
+    }
+
+    html:not(.js) .cal-wrap {
+        display: none;
+    }
+
+    /* ---- Navegação (desktop largo) ---- */
+    .hud-nav {
+        display: none;
+        gap: 0.25rem;
+        margin-left: 0.5rem;
+    }
+
+    .hud-nav a {
+        position: relative;
+        padding: 0.3rem 0.7rem;
+        color: var(--muted);
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 700;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        transition: color 0.15s;
+    }
+
+    .hud-nav a:hover {
+        color: var(--ink);
+    }
+
+    .hud-nav a[aria-current] {
+        color: var(--night);
+    }
+
+    .hud-nav a[aria-current]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: var(--ink);
+        transform: skewX(var(--skew));
+    }
+
+    /* ---- Progresso ---- */
+    .hud-progress {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-width: 3.5rem;
+        margin-left: auto;
+    }
+
+    .hud-lv {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--accent);
+        white-space: nowrap;
+    }
+
+    .hud-lv b {
+        font-style: italic;
+        font-weight: 900;
+        font-size: 1.35rem;
+        color: var(--ink);
+    }
+
+    .hud-bar {
+        flex: 1;
+        min-width: 2rem;
+        height: 0.4rem;
+    }
+
+    .hud-bar::before {
+        transition: width 0.15s linear;
+    }
+
+    .hud-levelup {
+        position: absolute;
+        left: 50%;
+        top: calc(100% + 0.4rem);
+        background: var(--good);
+        font-size: 1rem;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .hud-levelup.show {
+        animation: levelup 1.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes levelup {
+        0% {
+            opacity: 0;
+            transform: skewX(var(--skew)) translateX(30px);
+        }
+        15%,
+        75% {
+            opacity: 1;
+            transform: skewX(var(--skew));
+        }
+        100% {
+            opacity: 0;
+            transform: skewX(var(--skew)) translateX(-20px);
+        }
+    }
+
+    /* ---- Ações ---- */
+    .hud-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .hud-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        min-width: 2.75rem;
+        height: 2.75rem;
+        padding-inline: 0.55rem;
+        color: var(--ink);
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.05rem;
+        transition:
+            background 0.15s,
+            color 0.15s;
+    }
+
+    .hud-btn:hover {
+        background: var(--chip);
+    }
+
+    .hud-btn svg {
+        width: 1.3rem;
+        height: 1.3rem;
+    }
+
+    .hud-score {
+        display: none;
+        font-style: italic;
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .hud-btn[data-trophy].bump {
+        animation: bump 0.5s ease 2;
+    }
+
+    @keyframes bump {
+        50% {
+            transform: scale(1.15);
+            color: var(--accent);
+        }
+    }
+
+    .hud-btn.hud-sound {
+        display: none;
+    }
+
+    .hud-sound .wave,
+    .hud-sound.is-on .mute {
+        display: none;
+    }
+
+    .hud-sound.is-on .wave {
+        display: inline;
+    }
+
+    .hud-sound.is-on {
+        color: var(--accent);
+    }
+
+    .hud-menu .hud-esc {
+        display: none;
+    }
+
+    .hud-menu-label {
+        display: none;
+        font-style: italic;
+        font-weight: 800;
+        font-size: 1.15rem;
+        text-transform: uppercase;
+    }
+
+    /* celulares estreitos: calendário menor e só ícones nas ações */
+    @media (max-width: 29.99rem) {
+        .hud-inner {
+            gap: 0.4rem;
+        }
+
+        .cal-word {
+            margin-left: 1rem;
+            font-size: 1.85rem;
+        }
+
+        .cal-date {
+            font-size: 1.6rem;
+        }
+
+        .cal-day {
+            width: 2rem;
+            height: 1.35rem;
+            font-size: 0.7rem;
+        }
+
+        .cal-moon {
+            width: 1.6rem;
+            height: 1.6rem;
+        }
+
+        .hud-actions {
+            gap: 0;
+        }
+
+        .hud-btn {
+            min-width: 2.5rem;
+            padding-inline: 0.3rem;
+        }
+
+        .hud-progress {
+            min-width: 2.5rem;
+        }
+
+        .hud-lv {
+            display: none;
+        }
+    }
+
+    @media (max-width: 22.5rem) {
+        .cal-day {
+            display: none;
+        }
+
+        .cal-word {
+            font-size: 1.5rem;
+        }
+
+        .hud-progress {
+            min-width: 1.25rem;
+        }
+    }
+
+    @media (min-width: 30rem) {
+        .hud-score {
+            display: inline;
+        }
+    }
+
+    @media (min-width: 42rem) {
+        .hud-menu-label {
+            display: inline;
+        }
+
+        .hud-menu-icon {
+            display: none;
+        }
+    }
+
+    @media (min-width: 42rem) {
+        .cal-tod {
+            display: inline;
+        }
+
+        .hud-btn.hud-sound {
+            display: inline-flex;
+        }
+    }
+
+    @media (min-width: 56rem) and (pointer: fine) {
+        .hud-menu .hud-esc {
+            display: inline-block;
+        }
+    }
+
+    @media (min-width: 84rem) {
+        .hud-nav {
+            display: flex;
+        }
+
+    }
+
+    /* ---- Menu de pausa: o mesmo menu de comandos do hero ---- */
+    .pause {
+        width: min(100% - 1.5rem, 44rem);
+    }
+
+    .pause-body {
+        position: relative;
+        max-height: inherit;
+        overflow: auto;
+        overscroll-behavior: contain;
+        padding: clamp(1.25rem, 4vw, 2rem);
+        background: linear-gradient(
+            160deg,
+            var(--azure),
+            var(--royal) 60%,
+            var(--deep)
+        );
+        box-shadow: 10px 10px 0 var(--shadow);
+    }
+
+    .pause-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .pause-head h2 {
+        font-size: var(--title-md);
+        font-weight: 900;
+        text-transform: uppercase;
+        text-shadow: 0.06em 0.06em 0 var(--deep);
+    }
+
+    .pause-help {
+        min-height: calc(3.2em + 1rem);
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        border-left: 3px solid var(--accent);
+        background: var(--panel);
+        color: var(--ink);
+        font-size: var(--step--1);
+    }
+
+    .pause-system {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .pause-system h3 {
+        font-size: 1.35rem;
+        color: var(--accent);
+    }
+
+    .pause-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+    }
+
+    /* Menu de comandos diagonal (usado no menu de pausa e no hero) */
+    .cmd {
+        display: grid;
+        justify-items: start;
+        gap: 0.15rem;
+        padding: 0;
+        list-style: none;
+    }
+
+    .cmd li {
+        margin-left: calc(var(--i, 0) * 1.1rem);
+    }
+
+    .cmd a {
+        display: inline-block;
+        padding: 0.15rem 1.6rem 0.15rem 0.9rem;
+        color: var(--idle);
+        text-decoration: none;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 800;
+        font-size: clamp(1.75rem, 1.4rem + 1.6vw, 2.6rem);
+        line-height: 1.05;
+        text-transform: uppercase;
+        transition: color 0.12s;
+    }
+
+    .cmd-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    /* o cursor sempre ocupa espaço (só fica invisível): trocar a seleção não muda a largura dos itens */
+    .cmd .cursor {
+        visibility: hidden;
+        font-size: 0.6em;
+    }
+
+    .cmd a:hover,
+    .cmd a:focus-visible,
+    .cmd a.is-selected {
+        position: relative;
+        color: var(--night);
+        outline: none;
+    }
+
+    .cmd a:hover::before,
+    .cmd a:focus-visible::before,
+    .cmd a.is-selected::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: var(--ink);
+        transform: skewX(var(--skew));
+        box-shadow: 7px 7px 0 var(--accent);
+    }
+
+    .cmd a:hover .cursor,
+    .cmd a:focus-visible .cursor,
+    .cmd a.is-selected .cursor {
+        visibility: visible;
+    }
+
+    .cmd li {
+        position: relative;
+        z-index: 0;
+    }
+</style>

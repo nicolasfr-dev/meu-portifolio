@@ -1,0 +1,16 @@
+---
+interface Props {
+	id: string;
+	title: string;
+	/** Texto da "caixa de ajuda", como a descrição do item selecionado no menu do jogo. */
+	help?: string;
+}
+
+const { id, title, help } = Astro.props;
+---
+
+<header class="stage-head" data-reveal>
+	<h2 class="stage-title" id={id}>{title}</h2>
+	{help && <p class="stage-help">{help}</p>}
+	<slot />
+</header>

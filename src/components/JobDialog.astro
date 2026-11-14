@@ -1,0 +1,235 @@
+---
+/**
+ * Modal com os projetos feitos num cargo. Abre ao clicar no card do Calendário
+ * (data-open="job-{id}" → <dialog id="job-{id}-dialog">).
+ */
+import type { Lang, Project } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+interface Props {
+	lang: Lang;
+	id: string;
+	company: string;
+	role: string;
+	period: string;
+	projects: Project[];
+}
+
+const { lang, id, company, role, period, projects } = Astro.props;
+const t = useT(lang);
+---
+
+<dialog class="modal job" id={`job-${id}-dialog`} aria-labelledby={`job-${id}-title`}>
+	<div class="job-body">
+		<header class="job-head">
+			<div class="job-id">
+				<span class="tag"><span>{period}</span></span>
+				<h2 id={`job-${id}-title`}>{company}</h2>
+				<p class="job-role">{role}</p>
+			</div>
+			<button class="icon-btn" type="button" data-close aria-label={t('achievements.close')}>✕</button>
+		</header>
+
+		<h3 class="job-sub">
+			{t('campaign.projectsTitle')}
+			<span class="job-count">{projects.length}</span>
+		</h3>
+
+		<ul class="job-list" role="list">
+			{
+				projects.map((p) => (
+					<li class="job-card">
+						<header class="job-card-top">
+							<span class="tag">
+								<span>{t(`quests.type.${p.type}`)}</span>
+							</span>
+							<span class:list={['job-status', `job-status--${p.status}`]}>
+								{t(p.status === 'done' ? 'quests.done' : 'quests.progress')}
+							</span>
+						</header>
+						<h4 class="job-card-title">{p.title[lang]}</h4>
+						<p class="job-card-summary">{p.summary[lang]}</p>
+						<div class="job-card-foot">
+							<span class="job-diff" role="img" aria-label={`${t('quests.difficulty')} ${p.difficulty}/5`}>
+								{Array.from({ length: 5 }, (_, i) => (
+									<i class={i < p.difficulty ? 'on' : undefined} />
+								))}
+							</span>
+							<ul class="job-loot" role="list" aria-label={t('quests.loot')}>
+								{p.loot.map((item) => (
+									<li>{item}</li>
+								))}
+							</ul>
+						</div>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</dialog>
+
+<style>
+	.job {
+		width: min(100% - 1.5rem, 54rem);
+	}
+
+	.job-body {
+		max-height: inherit;
+		overflow: auto;
+		overscroll-behavior: contain;
+		padding: clamp(1.25rem, 4vw, 2rem);
+		background: linear-gradient(160deg, var(--azure), var(--royal) 50%, var(--deep));
+		box-shadow: 10px 10px 0 var(--shadow);
+	}
+
+	.job-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.job-id {
+		display: grid;
+		justify-items: start;
+		gap: 0.45rem;
+		min-width: 0;
+	}
+
+	.job-id .tag {
+		font-size: 1rem;
+	}
+
+	.job-id h2 {
+		font-size: var(--title-md);
+		font-weight: 900;
+		text-transform: uppercase;
+		text-shadow: 0.06em 0.06em 0 var(--deep);
+	}
+
+	.job-role {
+		font-weight: 600;
+		color: var(--accent);
+	}
+
+	.job-sub {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-bottom: 0.9rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgb(255 255 255 / 0.15);
+		font-size: var(--title-sm);
+		font-weight: 900;
+		text-transform: uppercase;
+	}
+
+	.job-count {
+		display: inline-grid;
+		place-items: center;
+		min-width: 1.8rem;
+		height: 1.8rem;
+		padding: 0 0.4rem;
+		background: var(--ink);
+		color: var(--azure);
+		font-size: 1.1rem;
+		transform: skewX(var(--skew));
+	}
+
+	.job-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+		gap: 0.9rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.job-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1.1rem 1.2rem;
+		background: var(--panel);
+		border-radius: 6px;
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	.job-card-top {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.job-card-top .tag {
+		font-size: 0.9rem;
+	}
+
+	.job-status {
+		font-family: var(--font-display);
+		font-weight: 700;
+	}
+
+	.job-status--done {
+		color: var(--good);
+	}
+
+	.job-status--progress {
+		color: var(--accent);
+	}
+
+	.job-card-title {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: var(--title-sm);
+		line-height: 1;
+		text-transform: uppercase;
+	}
+
+	.job-card-summary {
+		color: var(--muted);
+		font-size: var(--step--1);
+	}
+
+	.job-card-foot {
+		display: grid;
+		gap: 0.6rem;
+		margin-top: auto;
+		padding-top: 0.4rem;
+	}
+
+	.job-diff {
+		display: flex;
+		gap: 4px;
+		width: 7rem;
+	}
+
+	.job-diff i {
+		flex: 1;
+		height: 0.4rem;
+		background: var(--track);
+		transform: skewX(var(--skew));
+	}
+
+	.job-diff i.on {
+		background: var(--ink);
+	}
+
+	.job-loot {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		padding: 0;
+		list-style: none;
+		font-size: var(--step--1);
+	}
+
+	.job-loot li {
+		padding: 0.1rem 0.55rem;
+		background: var(--chip);
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+</style>

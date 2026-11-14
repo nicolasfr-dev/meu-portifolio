@@ -1,0 +1,528 @@
+---
+import KeyText from './KeyText.astro';
+import { profile, type Lang } from '../data/profile';
+import { useT, altLang, pathFor } from '../i18n/ui';
+
+const lang = Astro.props.lang as Lang;
+const t = useT(lang);
+const other = altLang(lang);
+const year = new Date().getFullYear();
+
+const dirLabel =
+	lang === 'pt'
+		? { up: 'Cima', down: 'Baixo', left: 'Esquerda', right: 'Direita' }
+		: { up: 'Up', down: 'Down', left: 'Left', right: 'Right' };
+const arrows = { up: 'M12 4 L19 15 H5 Z', down: 'M12 20 L19 9 H5 Z', left: 'M4 12 L15 5 V19 Z', right: 'M20 12 L9 5 V19 Z' };
+---
+
+<footer class="footer">
+	<div class="container footer-inner">
+		<p class="footer-thanks">{t('footer.thanks')}</p>
+
+		<!-- Controle: corpo retangular de cantos arredondados, com os detalhes de um controle real -->
+		<div class="pad" aria-label="Gamepad">
+			<span class="pad-shoulder pad-shoulder--l" aria-hidden="true">L</span>
+			<span class="pad-shoulder pad-shoulder--r" aria-hidden="true">R</span>
+
+			<div class="pad-body">
+				<!-- visor com LED e o progresso do código -->
+				<span class="pad-led" aria-hidden="true"></span>
+				<div class="pad-screen">
+					<span class="pad-p1" aria-hidden="true">P1</span>
+					<span class="pad-progress" data-pad-display aria-live="polite">· · · · · · · · · ·</span>
+				</div>
+				<span class="pad-brand" aria-hidden="true">Dark Hour</span>
+
+				<!-- D-pad num rebaixo circular -->
+				<div class="dpad-well">
+					<div class="dpad">
+						{
+							(['up', 'left', 'right', 'down'] as const).map((dir) => (
+								<button type="button" class={`dpad-btn dpad-${dir}`} data-pad={dir} aria-label={dirLabel[dir]}>
+									<svg viewBox="0 0 24 24" aria-hidden="true">
+										<path d={arrows[dir]} />
+									</svg>
+								</button>
+							))
+						}
+						<span class="dpad-center" aria-hidden="true"></span>
+					</div>
+				</div>
+
+				<!-- Select / Start com legenda -->
+				<div class="pad-mid" aria-hidden="true">
+					<span class="pad-pill"><i></i>Select</span>
+					<span class="pad-pill"><i></i>Start</span>
+				</div>
+
+				<!-- A e B numa cápsula rebaixada e inclinada -->
+				<div class="ab-well">
+					<button type="button" class="ab-btn ab-b" data-pad="b">B</button>
+					<button type="button" class="ab-btn ab-a" data-pad="a">A</button>
+				</div>
+
+				<!-- grade do alto-falante -->
+				<span class="pad-grille" aria-hidden="true">
+					{Array.from({ length: 6 }, () => <i />)}
+				</span>
+			</div>
+		</div>
+
+		<p class="pad-hint"><KeyText text={t('footer.hint')} lang={lang} /></p>
+
+		<div class="footer-bottom" data-end>
+			<p>© {year} {profile.name}. {t('footer.made')}</p>
+			<a href={pathFor(other)} hreflang={other} lang={other} data-lang-switch>{t('system.lang')}</a>
+		</div>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		position: relative;
+		overflow: hidden;
+		padding-block: clamp(2rem, 5vw, 3rem) calc(env(safe-area-inset-bottom) + 1.5rem);
+		background: linear-gradient(160deg, var(--royal), var(--deep) 55%, var(--night));
+		isolation: isolate;
+	}
+
+	.footer::before {
+		content: '';
+		position: absolute;
+		z-index: -1;
+		inset: 0 auto 0 12%;
+		width: 6px;
+		background: var(--accent);
+		transform: skewX(var(--skew));
+	}
+
+	.footer-inner {
+		display: grid;
+		justify-items: center;
+		gap: clamp(1.25rem, 3vw, 1.75rem);
+		text-align: center;
+	}
+
+	.footer-thanks {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: var(--title-lg);
+		line-height: 0.95;
+		text-transform: uppercase;
+		text-shadow: 0.06em 0.06em 0 var(--deep);
+	}
+
+	/* ================= Controle =================
+	   Tudo é posicionado em % do corpo e dimensionado em cqw (largura do controle),
+	   então escala inteiro do celular ao desktop. */
+	.pad {
+		--edge: color-mix(in srgb, var(--azure) 65%, var(--ink));
+		--well: color-mix(in srgb, var(--night) 70%, #000);
+		position: relative;
+		width: min(100%, 30rem);
+		aspect-ratio: 2 / 1;
+		margin-top: 1.25rem;
+		container-type: inline-size;
+		isolation: isolate;
+	}
+
+	/* a camada azul deslocada atrás, a mesma das caixas de diálogo */
+	.pad::before {
+		content: '';
+		position: absolute;
+		z-index: -2;
+		inset: 0;
+		border-radius: 7cqw 7cqw 9cqw 9cqw;
+		background: var(--azure);
+		opacity: 0.85;
+		transform: translate(2.4cqw, -2cqw);
+	}
+
+	/* gatilhos L e R aparecendo no topo, atrás do corpo */
+	.pad-shoulder {
+		position: absolute;
+		z-index: -1;
+		top: -3.6cqw;
+		width: 24%;
+		height: 9cqw;
+		padding-top: 0.6cqw;
+		border-radius: 4cqw 4cqw 0 0;
+		background: color-mix(in srgb, var(--deep) 70%, var(--azure));
+		box-shadow: inset 0 0 0 2px var(--edge);
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 800;
+		font-size: max(0.65rem, 2.6cqw);
+		line-height: 1;
+		color: var(--muted);
+	}
+
+	.pad-shoulder--l {
+		left: 7%;
+	}
+
+	.pad-shoulder--r {
+		right: 7%;
+	}
+
+	.pad-body {
+		position: absolute;
+		inset: 0;
+		border-radius: 7cqw 7cqw 9cqw 9cqw;
+		background:
+			linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent 40%),
+			var(--deep);
+		box-shadow:
+			inset 0 0 0 2px var(--edge),
+			0 1.6cqw 0 var(--shadow);
+	}
+
+	/* friso interno contornando o corpo */
+	.pad-body::after {
+		content: '';
+		position: absolute;
+		inset: 3cqw;
+		border-radius: 5cqw 5cqw 6.5cqw 6.5cqw;
+		border: 1px solid rgb(255 255 255 / 0.08);
+		pointer-events: none;
+	}
+
+	/* ---- visor ---- */
+	.pad-led {
+		position: absolute;
+		left: 26.5%;
+		top: 15.5%;
+		width: 1.6cqw;
+		height: 1.6cqw;
+		min-width: 6px;
+		min-height: 6px;
+		border-radius: 50%;
+		background: var(--accent);
+		box-shadow: 0 0 0 2px var(--night);
+	}
+
+	.pad-screen {
+		position: absolute;
+		left: 50%;
+		top: 9%;
+		translate: -50% 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 2cqw;
+		width: 40%;
+		height: 16%;
+		background: #000;
+		clip-path: polygon(5% 0, 100% 0, 100% 70%, 95% 100%, 0 100%, 0 30%);
+		font-family: var(--font-display);
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.pad-p1 {
+		font-style: italic;
+		font-weight: 900;
+		font-size: max(0.6rem, 2.6cqw);
+		color: var(--accent);
+	}
+
+	.pad-progress {
+		font-size: max(0.7rem, 3.1cqw);
+		letter-spacing: 0.06em;
+		color: var(--muted);
+	}
+
+	.pad-progress:global(.has-progress) {
+		color: var(--accent);
+	}
+
+	.pad-brand {
+		position: absolute;
+		left: 50%;
+		top: 28%;
+		translate: -50% 0;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 800;
+		font-size: max(0.6rem, 2.4cqw);
+		letter-spacing: 0.3em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--muted) 55%, transparent);
+		white-space: nowrap;
+	}
+
+	/* ---- D-pad ---- */
+	.dpad-well {
+		--s: max(2.4rem, 7.5cqw);
+		position: absolute;
+		left: 22%;
+		top: 57%;
+		translate: -50% -50%;
+		display: grid;
+		place-items: center;
+		width: calc(var(--s) * 3 + 3.5cqw);
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: var(--well);
+		box-shadow:
+			inset 0 1cqw 1.5cqw rgb(0 0 0 / 0.5),
+			0 1px 0 rgb(255 255 255 / 0.08);
+	}
+
+	.dpad {
+		display: grid;
+		grid-template-columns: repeat(3, var(--s));
+		grid-template-rows: repeat(3, var(--s));
+		filter: drop-shadow(0 0.8cqw 0 #000);
+	}
+
+	.dpad-btn,
+	.dpad-center {
+		display: grid;
+		place-items: center;
+		background: color-mix(in srgb, var(--night) 60%, var(--deep));
+		color: var(--muted);
+		transition: color 0.1s, background 0.1s;
+	}
+
+	.dpad-btn svg {
+		width: 50%;
+		height: 50%;
+		fill: currentColor;
+	}
+
+	.dpad-btn:hover {
+		color: var(--ink);
+	}
+
+	.dpad-btn:active {
+		color: var(--night);
+		background: var(--ink);
+	}
+
+	.dpad-up {
+		grid-area: 1 / 2;
+		border-radius: 5px 5px 0 0;
+	}
+
+	.dpad-left {
+		grid-area: 2 / 1;
+		border-radius: 5px 0 0 5px;
+	}
+
+	.dpad-center {
+		grid-area: 2 / 2;
+	}
+
+	.dpad-center::after {
+		content: '';
+		width: 40%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: var(--well);
+		box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+	}
+
+	.dpad-right {
+		grid-area: 2 / 3;
+		border-radius: 0 5px 5px 0;
+	}
+
+	.dpad-down {
+		grid-area: 3 / 2;
+		border-radius: 0 0 5px 5px;
+	}
+
+	/* ---- Select / Start ---- */
+	.pad-mid {
+		position: absolute;
+		left: 50%;
+		top: 60%;
+		translate: -50% 0;
+		display: flex;
+		gap: 4cqw;
+	}
+
+	.pad-pill {
+		display: grid;
+		justify-items: center;
+		gap: 1cqw;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 700;
+		font-size: max(0.55rem, 2.1cqw);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	/* o botão em si: um bastão inclinado afundado no corpo */
+	.pad-pill i {
+		width: 8cqw;
+		min-width: 1.75rem;
+		height: 2.2cqw;
+		min-height: 0.5rem;
+		border-radius: 999px;
+		background: var(--well);
+		box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+		transform: rotate(-22deg);
+	}
+
+	/* ---- A / B ---- */
+	.ab-well {
+		--size: max(2.75rem, 10cqw);
+		position: absolute;
+		left: 77%;
+		top: 55%;
+		translate: -50% -50%;
+		rotate: -22deg;
+		display: flex;
+		align-items: center;
+		gap: 3cqw;
+		padding: 1.8cqw;
+		border-radius: 999px;
+		background: var(--well);
+		box-shadow:
+			inset 0 1cqw 1.5cqw rgb(0 0 0 / 0.5),
+			0 1px 0 rgb(255 255 255 / 0.08);
+	}
+
+	.ab-btn {
+		display: grid;
+		place-items: center;
+		width: var(--size);
+		height: var(--size);
+		border-radius: 50%;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: calc(var(--size) * 0.42);
+		rotate: 22deg;
+		transition: transform 0.06s, box-shadow 0.06s;
+	}
+
+	.ab-b {
+		background: var(--azure);
+		color: var(--ink);
+		box-shadow:
+			inset 0 0 0 2px rgb(255 255 255 / 0.22),
+			0 0.9cqw 0 0 var(--royal);
+	}
+
+	.ab-a {
+		background: var(--ink);
+		color: var(--azure);
+		box-shadow:
+			inset 0 -0.6cqw 0 0 color-mix(in srgb, var(--ink) 75%, var(--azure)),
+			0 0.9cqw 0 0 color-mix(in srgb, var(--azure) 55%, var(--deep));
+	}
+
+	.ab-btn:active {
+		transform: translateY(0.9cqw);
+		box-shadow: none;
+	}
+
+	.ab-btn:focus-visible,
+	.dpad-btn:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
+
+	/* ---- alto-falante ---- */
+	.pad-grille {
+		position: absolute;
+		left: 50%;
+		bottom: 9%;
+		translate: -50% 0;
+		display: flex;
+		gap: 1.6cqw;
+	}
+
+	.pad-grille i {
+		width: 1cqw;
+		min-width: 3px;
+		height: 5cqw;
+		border-radius: 999px;
+		background: var(--well);
+		transform: skewX(var(--skew));
+	}
+
+	/* controle pequeno (celular): Select/Start e grade se ajustam para não encostar nos rebaixos */
+	@container (max-width: 24rem) {
+		.pad-mid {
+			top: 62%;
+			gap: 2.5cqw;
+		}
+
+		.pad-brand {
+			display: none;
+		}
+	}
+
+	/* celular: o controle fica mais alto (1.55:1) e as peças descem, para caberem sem encostar */
+	@media (max-width: 30rem) {
+		.pad {
+			aspect-ratio: 1.55 / 1;
+		}
+
+		.dpad-well {
+			--s: max(2.1rem, 7.5cqw);
+			top: 62%;
+			left: 23%;
+		}
+
+		.ab-well {
+			--size: max(2.5rem, 10cqw);
+			top: 60%;
+			left: 76%;
+		}
+
+		.pad-screen {
+			width: 48%;
+			height: 13%;
+		}
+
+		.pad-led {
+			left: 22%;
+			top: 12%;
+		}
+
+		.pad-mid {
+			top: 84% !important;
+			translate: -50% -50%;
+		}
+
+		.pad-grille {
+			display: none;
+		}
+	}
+
+	.pad-hint {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.3rem;
+		color: var(--muted);
+		font-size: var(--step--1);
+	}
+
+	/* celular: teclas da dica menores para a sequência inteira caber numa linha */
+	@media (max-width: 30rem) {
+		.pad-hint {
+			gap: 0.15rem;
+		}
+
+		.pad-hint :global(.keycap) {
+			height: 1.15em;
+		}
+	}
+
+	.footer-bottom {
+		display: grid;
+		gap: 0.4rem;
+		font-size: var(--step--1);
+		color: var(--muted);
+	}
+</style>

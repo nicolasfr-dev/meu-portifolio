@@ -1,0 +1,325 @@
+---
+import StageHead from './StageHead.astro';
+import { education, type Lang } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+const lang = Astro.props.lang as Lang;
+const t = useT(lang);
+
+/** Progresso (0–100) entre duas datas AAAA-MM; recalculado no navegador para não envelhecer. */
+const progressOf = (start: string, end: string, now = new Date()) => {
+	const s = new Date(`${start}-01T00:00:00`).getTime();
+	const e = new Date(`${end}-01T00:00:00`).getTime();
+	return Math.round(Math.min(1, Math.max(0, (now.getTime() - s) / (e - s))) * 100);
+};
+---
+
+<section class="stage" id="education" data-stage aria-labelledby="education-title">
+	<div class="container">
+		<StageHead id="education-title" title={t('education.title')} help={t('help.education')} />
+
+		<!-- formação acadêmica: cada graduação ocupa a largura toda, com o progresso ao lado -->
+		<div class="edu-block" data-reveal>
+			<h3 class="edu-heading">{t('education.degrees')}</h3>
+			{
+				education.degrees.map((d) => {
+					const pct = progressOf(d.start, d.end);
+					const [, endLabel] = d.period[lang].split(' — ');
+					return (
+						<article class="degree" data-start={d.start} data-end={d.end}>
+							<div class="degree-info">
+								<header class="degree-top">
+									<span class="tag">
+										<span>{d.level[lang]}</span>
+									</span>
+									<span class="degree-status" data-edu-status data-done={t('education.done')}>
+										{pct >= 100 ? t('education.done') : t('education.inProgress')}
+									</span>
+								</header>
+								<h4 class="degree-course">{d.course[lang]}</h4>
+								<p class="degree-school">{d.institution}</p>
+								<p class="degree-period">{d.period[lang]}</p>
+							</div>
+
+							<div class="degree-progress">
+								<p class="degree-progress-label">{t('education.progress')}</p>
+								<p class="degree-pct" data-edu-pct>
+									{pct}%
+								</p>
+								<div class="degree-pips" data-edu-pips aria-hidden="true">
+									{Array.from({ length: 10 }, (_, i) => (
+										<i class={i < Math.round(pct / 10) ? 'on' : undefined} />
+									))}
+								</div>
+								{endLabel && (
+									<p class="degree-expected">
+										{t('education.expected')}: <b>{endLabel}</b>
+									</p>
+								)}
+							</div>
+						</article>
+					);
+				})
+			}
+		</div>
+
+		<!-- certificados: cards lado a lado -->
+		<div class="edu-block" data-reveal>
+			<h3 class="edu-heading">{t('education.certificates')}</h3>
+			<ul class="certs" role="list">
+				{
+					education.certificates.map((c) => (
+						<li class="cert">
+							<header class="cert-top">
+								<span class="tag">
+									<span>{t('education.certificate')}</span>
+								</span>
+								<span class="cert-period">{c.period[lang]}</span>
+							</header>
+							<h4 class="cert-title">{c.title[lang]}</h4>
+							<p class="cert-issuer">{c.issuer}</p>
+							<ul class="cert-points" role="list">
+								{c.highlights[lang].map((h) => (
+									<li>{h}</li>
+								))}
+							</ul>
+						</li>
+					))
+				}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<script>
+	// O progresso do curso é recalculado com a data de hoje (o HTML vem com o valor do dia do build).
+	document.querySelectorAll<HTMLElement>('.degree[data-start]').forEach((card) => {
+		const s = new Date(`${card.dataset.start}-01T00:00:00`).getTime();
+		const e = new Date(`${card.dataset.end}-01T00:00:00`).getTime();
+		const pct = Math.round(Math.min(1, Math.max(0, (Date.now() - s) / (e - s))) * 100);
+		const pctEl = card.querySelector('[data-edu-pct]');
+		if (pctEl) pctEl.textContent = `${pct}%`;
+		card.querySelectorAll('[data-edu-pips] i').forEach((pip, i) => pip.classList.toggle('on', i < Math.round(pct / 10)));
+		const status = card.querySelector<HTMLElement>('[data-edu-status]');
+		if (status && pct >= 100) status.textContent = status.dataset.done ?? status.textContent;
+	});
+</script>
+
+<style>
+	.edu-block {
+		display: grid;
+		gap: 0.9rem;
+		container-type: inline-size;
+	}
+
+	.edu-block + .edu-block {
+		margin-top: clamp(1.75rem, 4vw, 2.5rem);
+	}
+
+	.edu-heading {
+		font-size: var(--title-sm);
+		font-weight: 900;
+		text-transform: uppercase;
+	}
+
+	/* ---- graduação: faixa de destaque com o progresso ao lado ---- */
+	.degree {
+		display: grid;
+		gap: 1.25rem;
+		padding: clamp(1.1rem, 2.5vw, 1.75rem);
+		background: linear-gradient(150deg, var(--azure), var(--royal) 60%, var(--deep));
+		border-radius: 6px;
+		box-shadow: 10px 10px 0 var(--shadow);
+	}
+
+	.degree-info {
+		display: grid;
+		gap: 0.45rem;
+		align-content: start;
+	}
+
+	.degree-top,
+	.cert-top {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.degree-top {
+		justify-content: flex-start;
+		gap: 0.9rem;
+	}
+
+	.degree-top .tag,
+	.cert-top .tag {
+		font-size: 0.95rem;
+	}
+
+	.degree-status {
+		font-family: var(--font-display);
+		font-weight: 700;
+		color: var(--accent);
+	}
+
+	.degree-course {
+		margin-top: 0.3rem;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: var(--title-md);
+		line-height: 0.95;
+		text-transform: uppercase;
+		text-shadow: 0.06em 0.06em 0 var(--deep);
+	}
+
+	.degree-school {
+		font-weight: 600;
+		color: var(--soft);
+	}
+
+	.degree-period {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 700;
+		font-size: 1.15rem;
+		color: var(--accent);
+	}
+
+	.degree-progress {
+		display: grid;
+		gap: 0.45rem;
+		align-content: center;
+		padding-top: 1rem;
+		border-top: 1px solid rgb(255 255 255 / 0.15);
+	}
+
+	.degree-progress-label {
+		font-family: var(--font-display);
+		font-weight: 700;
+		color: var(--soft);
+	}
+
+	/* número grande, branco com contorno escuro, como a data da HUD */
+	.degree-pct {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: clamp(3rem, 2.2rem + 3vw, 4.5rem);
+		line-height: 0.9;
+		font-variant-numeric: tabular-nums;
+		text-shadow:
+			2px 0 0 var(--shadow),
+			-2px 0 0 var(--shadow),
+			0 2px 0 var(--shadow),
+			0 -2px 0 var(--shadow),
+			4px 4px 0 var(--deep);
+	}
+
+	.degree-pips {
+		display: flex;
+		gap: 5px;
+	}
+
+	.degree-pips i {
+		flex: 1;
+		height: 0.65rem;
+		background: rgb(4 8 40 / 0.55);
+		transform: skewX(var(--skew));
+	}
+
+	.degree-pips :global(i.on) {
+		background: var(--ink);
+	}
+
+	.degree-expected {
+		font-size: var(--step--1);
+		color: var(--soft);
+	}
+
+	.degree-expected b {
+		color: var(--ink);
+	}
+
+	/* largo: informações à esquerda, progresso à direita, separados por uma linha */
+	@container (min-width: 44rem) {
+		.degree {
+			grid-template-columns: minmax(0, 1.5fr) minmax(15rem, 1fr);
+			gap: 2.5rem;
+		}
+
+		.degree-progress {
+			padding: 0 0 0 2.5rem;
+			border-top: 0;
+			border-left: 1px solid rgb(255 255 255 / 0.15);
+		}
+	}
+
+	/* ---- certificados ---- */
+	.certs {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+		gap: clamp(0.9rem, 2vw, 1.25rem);
+		padding: 0;
+		list-style: none;
+	}
+
+	.cert {
+		display: grid;
+		gap: 0.35rem;
+		align-content: start;
+		padding: clamp(1rem, 2.5vw, 1.4rem);
+		background: var(--panel);
+		border-radius: 6px;
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	.cert-period {
+		font-family: var(--font-display);
+		font-weight: 700;
+		color: var(--muted);
+	}
+
+	.cert-title {
+		margin-top: 0.2rem;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: var(--title-sm);
+		line-height: 1;
+		text-transform: uppercase;
+	}
+
+	.cert-issuer {
+		font-weight: 600;
+		color: var(--accent);
+	}
+
+	.cert-points {
+		display: grid;
+		gap: 0.3rem;
+		margin-top: 0.4rem;
+		padding: 0;
+		list-style: none;
+		color: var(--muted);
+		font-size: var(--step--1);
+	}
+
+	/* marcador: um pequeno losango inclinado */
+	.cert-points li {
+		position: relative;
+		padding-left: 1.1rem;
+	}
+
+	.cert-points li::before {
+		content: '';
+		position: absolute;
+		left: 0.15rem;
+		top: 0.55em;
+		width: 0.45rem;
+		height: 0.45rem;
+		background: var(--azure);
+		transform: skewX(var(--skew));
+	}
+</style>

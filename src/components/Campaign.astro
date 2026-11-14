@@ -1,0 +1,220 @@
+---
+import StageHead from './StageHead.astro';
+import JobDialog from './JobDialog.astro';
+import { campaign, type Lang } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+const lang = Astro.props.lang as Lang;
+const t = useT(lang);
+---
+
+<section class="stage" id="campaign" data-stage aria-labelledby="campaign-title">
+	<div class="container">
+		<StageHead id="campaign-title" title={t('campaign.title')} help={t('help.campaign')} />
+
+		<ol class="days" role="list">
+			{
+				campaign.map((c) => (
+					<li class:list={['day', { 'day--today': c.current }]} data-reveal>
+						<!-- início e fim sempre em duas linhas, para os cards ficarem alinhados -->
+						<p class="day-date">
+							{c.period[lang].split(' — ').map((part, i, all) => (
+								<span class="day-period">
+									{part}
+									{i < all.length - 1 && ' —'}
+								</span>
+							))}
+						</p>
+						<article class:list={['day-card', { 'day-card--open': c.projects.length > 0 }]} data-job-card>
+							{c.current && (
+								<span class="tag day-today">
+									<span>{t('campaign.current')}</span>
+								</span>
+							)}
+							<h3>{c.company}</h3>
+							<p class="day-role">{c.role[lang]}</p>
+							<p class="day-desc">{c.description[lang]}</p>
+							{c.projects.length > 0 && (
+								<button class="btn btn--sm btn--light day-open" type="button" data-open={`job-${c.id}`} data-unlock="quest_log">
+									<span>
+										{t('campaign.viewProjects')}
+										<b class="day-count">{c.projects.length}</b>
+									</span>
+								</button>
+							)}
+						</article>
+						{c.projects.length > 0 && (
+							<JobDialog
+								lang={lang}
+								id={c.id}
+								company={c.company}
+								role={c.role[lang]}
+								period={c.period[lang]}
+								projects={c.projects}
+							/>
+						)}
+					</li>
+				))
+			}
+		</ol>
+	</div>
+</section>
+
+<script>
+	// o card inteiro abre o modal; o botão continua sendo o alvo do teclado e do leitor de tela
+	document.querySelectorAll<HTMLElement>('[data-job-card]').forEach((card) => {
+		const open = card.querySelector<HTMLButtonElement>('[data-open]');
+		if (!open) return;
+		card.addEventListener('click', (e) => {
+			if (!(e.target as HTMLElement).closest('button, a')) open.click();
+		});
+	});
+</script>
+
+<style>
+	.days {
+		position: relative;
+		display: grid;
+		gap: clamp(1rem, 3vw, 1.5rem);
+		padding: 0 0 0 1.25rem;
+		list-style: none;
+	}
+
+	/* linha do tempo: uma faixa fina em ciano */
+	.days::before {
+		content: '';
+		position: absolute;
+		top: 0.5rem;
+		bottom: 0.5rem;
+		left: 0;
+		width: 3px;
+		background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 15%, transparent));
+	}
+
+	.day {
+		display: grid;
+		gap: 0.5rem;
+	}
+
+	.day-date {
+		display: grid;
+	}
+
+	.day-period {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+		line-height: 1;
+		text-shadow: 0.06em 0.06em 0 var(--royal);
+	}
+
+	.day-today {
+		justify-self: start;
+		margin-bottom: 0.2rem;
+		background: var(--accent);
+		font-size: 1rem;
+	}
+
+	.day-card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.35rem;
+		height: 100%;
+		padding: 1.1rem 1.25rem;
+		background: var(--panel);
+		border-radius: 6px;
+		box-shadow: inset 0 0 0 1px var(--line);
+	}
+
+	.day-card--open {
+		cursor: pointer;
+		transition: box-shadow 0.15s, transform 0.15s;
+	}
+
+	.day-card--open:hover {
+		box-shadow: inset 0 0 0 1.5px rgb(244 247 255 / 0.55);
+	}
+
+	/* o botão fica sempre no pé do card, alinhado entre os cards */
+	.day-open {
+		margin-top: auto;
+		margin-left: 0.4rem;
+		translate: 0 0.5rem;
+	}
+
+	.day-count {
+		display: inline-grid;
+		place-items: center;
+		min-width: 1.4rem;
+		height: 1.4rem;
+		padding: 0 0.3rem;
+		background: var(--azure);
+		color: var(--ink);
+		font-size: 0.9rem;
+	}
+
+	.day--today .day-card {
+		background: linear-gradient(150deg, var(--azure), var(--royal) 60%, var(--deep));
+		box-shadow: 8px 8px 0 var(--shadow);
+	}
+
+	.day--today .day-card--open:hover {
+		box-shadow:
+			8px 8px 0 var(--shadow),
+			inset 0 0 0 1.5px rgb(244 247 255 / 0.55);
+	}
+
+	.day-desc {
+		margin-bottom: 0.6rem;
+	}
+
+	.day-card h3 {
+		font-size: var(--title-sm);
+		font-weight: 900;
+		text-transform: uppercase;
+	}
+
+	.day-role {
+		color: var(--accent);
+		font-weight: 600;
+	}
+
+	.day--today .day-role {
+		color: var(--ink);
+	}
+
+	.day-desc {
+		color: var(--muted);
+	}
+
+	.day--today .day-desc {
+		color: var(--soft);
+	}
+
+	/* telas largas: dias lado a lado em ordem cronológica, como uma semana do calendário */
+	@media (min-width: 56rem) {
+		.days {
+			display: flex;
+			flex-direction: row-reverse;
+			align-items: stretch;
+			padding: 1.25rem 0 0;
+		}
+
+		.days::before {
+			top: 0;
+			bottom: auto;
+			left: 0;
+			right: 0;
+			width: auto;
+			height: 3px;
+			background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 15%, transparent), var(--accent));
+		}
+
+		.day {
+			flex: 1 1 0;
+			grid-template-rows: auto 1fr;
+		}
+	}
+</style>

@@ -1,0 +1,19 @@
+---
+/**
+ * Texto com teclas embutidas: marcadores como [enter], [left], [a] viram <Key>.
+ * Ex.: "[left][right] ou [a][d] para mover" → setas e letras desenhadas no meio do texto.
+ */
+import Key, { type KeyName } from './Key.astro';
+import type { Lang } from '../data/profile';
+
+interface Props {
+	text: string;
+	lang?: Lang;
+}
+
+const { text, lang = 'pt' } = Astro.props;
+// split com grupo de captura: posições ímpares são os nomes das teclas
+const parts = text.split(/\[(\w+)\]/);
+---
+
+{parts.map((part, i) => (i % 2 === 1 ? <Key name={part as KeyName} lang={lang} /> : part))}

@@ -1,0 +1,43 @@
+---
+/**
+ * Logo de uma tecnologia via Simple Icons (CC0), resolvido no build:
+ * vira um <svg> inline monocromático (currentColor), sem JS no navegador.
+ */
+import * as icons from 'simple-icons';
+
+interface Props {
+	/** Slug do Simple Icons, ex.: 'typescript', 'nodedotjs' (veja simpleicons.org). */
+	slug: string;
+	/** Texto usado para gerar iniciais quando o slug não existe. */
+	fallback: string;
+	class?: string;
+}
+
+const { slug, fallback, class: className } = Astro.props;
+const icon = Object.values(icons).find((i) => typeof i === 'object' && i !== null && 'slug' in i && i.slug === slug) as
+	| { path: string }
+	| undefined;
+// siglas curtas (ex.: 'BQ') entram como estão; nomes viram iniciais
+const initials =
+	fallback.length <= 3
+		? fallback.toUpperCase()
+		: fallback
+				.split(/[\s/.]+/)
+				.filter(Boolean)
+				.map((w) => w[0])
+				.join('')
+				.slice(0, 2)
+				.toUpperCase();
+---
+
+{
+	icon ? (
+		<svg class={className} viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+			<path d={icon.path} />
+		</svg>
+	) : (
+		<span class={className} aria-hidden="true">
+			{initials}
+		</span>
+	)
+}

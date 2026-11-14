@@ -1,0 +1,19 @@
+---
+/** Caixa de diálogo no estilo do jogo: flâmula com o nome + "TALK" e a fala dentro. */
+interface Props {
+	speaker: string;
+	label?: string;
+	class?: string;
+}
+
+const { speaker, label, class: className } = Astro.props;
+---
+
+<section class:list={['talk', className]} aria-label={label ?? speaker}>
+	<p class="talk-tag" aria-hidden="true">
+		<span class="talk-name">{speaker}</span>
+		<span class="talk-label">TALK</span>
+	</p>
+	<slot />
+	<span class="talk-next" aria-hidden="true"></span>
+</section>

@@ -1,0 +1,295 @@
+---
+import StageHead from './StageHead.astro';
+import Talk from './Talk.astro';
+import { profile, type Lang } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+const lang = Astro.props.lang as Lang;
+const t = useT(lang);
+const socials = profile.socials.filter((s) => s.id !== 'email');
+const [first] = profile.name.split(' ');
+
+/** Anel do rank: 10 arcos de 32° com 4° de folga, como um mostrador. */
+const segments = Array.from({ length: 10 }, (_, i) => {
+	const r = 42;
+	const point = (deg: number) => {
+		const rad = ((deg - 90) * Math.PI) / 180;
+		return `${(50 + r * Math.cos(rad)).toFixed(2)} ${(50 + r * Math.sin(rad)).toFixed(2)}`;
+	};
+	const start = i * 36 + 2;
+	return `M${point(start)} A${r} ${r} 0 0 1 ${point(start + 32)}`;
+});
+---
+
+<!-- Social Link: a cena de diálogo do jogo — fala embaixo, escolhas acima, retrato na ponta -->
+<section class="stage" id="contact" data-stage aria-labelledby="contact-title">
+	<div class="container">
+		<StageHead id="contact-title" title={t('contact.title')} help={t('help.contact')} />
+
+		<div class="link-scene" data-reveal>
+			<!-- rank do Social Link do visitante: um mostrador na linguagem do calendário da HUD -->
+			<div class="rank">
+				<div class="rank-dial" data-rank-pips>
+					<svg viewBox="0 0 100 100" aria-hidden="true">
+						<circle class="rank-disc" cx="50" cy="50" r="48"></circle>
+						{segments.map((d) => <path class="rank-seg" d={d} data-pip />)}
+					</svg>
+					<span class="rank-num"><span class="sr-only">Rank </span><span data-rank>1</span></span>
+				</div>
+				<div class="rank-info">
+					<span class="rank-tag" aria-hidden="true">Rank</span>
+					<span class="rank-who">{first}</span>
+					<span class="rank-label">Social Link</span>
+				</div>
+				<p class="rank-hint">{t('contact.rankHint')}</p>
+			</div>
+
+			<nav class="link-choices choice-box" aria-label={t('contact.title')}>
+				<ul class="choice-list" role="list" data-cmd>
+					<li>
+						<a href={`mailto:${profile.email}`} data-contact class="is-selected">{t('contact.email')}</a>
+					</li>
+					<li>
+						<button type="button" data-copy={profile.email}><span data-copy-label>{t('contact.copy')}</span></button>
+					</li>
+					{
+						socials.map((s) => (
+							<li>
+								<a href={s.url} target="_blank" rel="noopener me" data-contact>
+									{s.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+
+			<!-- retrato como no jogo: busto recortado, sem moldura, com a forma azul deslocada atrás -->
+			<div class="link-portrait" aria-hidden="true">
+				{
+					profile.photo ? (
+						<div class="bust-photo">
+							<img src={profile.photo} alt="" width={profile.photoSize.width} height={profile.photoSize.height} loading="lazy" />
+						</div>
+					) : (
+						<svg class="bust" viewBox="0 0 280 320">
+							<g class="bust-back" transform="translate(22 -14)">
+								<circle cx="130" cy="112" r="66" />
+								<path d="M14 320 C 20 220, 68 184, 130 184 S 240 220, 246 320 Z" />
+							</g>
+							<g class="bust-front">
+								<circle cx="130" cy="112" r="62" />
+								<path d="M18 320 C 24 224, 70 188, 130 188 S 236 224, 242 320 Z" />
+							</g>
+						</svg>
+					)
+				}
+			</div>
+
+			<Talk speaker={first} class="link-talk">
+				<p>{t('contact.prompt')}</p>
+				<p class="link-mail">{profile.email}</p>
+			</Talk>
+		</div>
+	</div>
+</section>
+
+<style>
+	/* ---- rank: mostrador flutuante, na mesma linguagem do calendário (sem caixa de fundo) ---- */
+	.rank {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-areas:
+			'dial info'
+			'hint hint';
+		align-items: center;
+		gap: 0.75rem 1rem;
+	}
+
+	.rank-dial {
+		grid-area: dial;
+		position: relative;
+		width: 6.5rem;
+		aspect-ratio: 1;
+	}
+
+	.rank-dial svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.rank-disc {
+		fill: #000;
+	}
+
+	.rank-seg {
+		fill: none;
+		stroke: var(--track);
+		stroke-width: 7;
+	}
+
+	.rank-dial :global(.rank-seg.on) {
+		stroke: var(--ink);
+	}
+
+	/* o número grande no centro, branco com contorno escuro como a data da HUD */
+	.rank-num {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		padding-right: 0.15em;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: 2.9rem;
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+		text-shadow:
+			2px 0 0 var(--shadow),
+			-2px 0 0 var(--shadow),
+			0 2px 0 var(--shadow),
+			0 -2px 0 var(--shadow),
+			3px 3px 0 var(--azure);
+	}
+
+	/* "MAX" é mais largo que um número: fonte menor para caber no anel */
+	.rank-num:has([data-max]) {
+		font-size: 1.9rem;
+	}
+
+	.rank-info {
+		grid-area: info;
+		display: grid;
+		justify-items: start;
+		gap: 0.15rem;
+		line-height: 1;
+	}
+
+	/* "RANK" no triângulo preto invertido, como o dia da semana */
+	.rank-tag {
+		display: grid;
+		justify-items: center;
+		width: 3.4rem;
+		height: 1.7rem;
+		padding-top: 0.15rem;
+		background: #000;
+		clip-path: polygon(0 0, 100% 0, 50% 100%);
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 0.8rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.rank-who {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: 2.4rem;
+		text-transform: uppercase;
+		text-shadow: 3px 3px 0 var(--azure);
+	}
+
+	.rank-label {
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 1.15rem;
+		color: var(--accent);
+	}
+
+	.rank-hint {
+		grid-area: hint;
+		max-width: 34ch;
+		font-size: var(--step--1);
+		color: var(--muted);
+	}
+
+	/* ---- cena ---- */
+	.link-scene {
+		display: grid;
+		gap: 1.5rem;
+	}
+
+	.link-mail {
+		margin-top: 0.5rem;
+		font-weight: 600 !important;
+		font-size: clamp(1.3rem, 1.1rem + 1vw, 1.9rem) !important;
+		line-height: 1.2 !important;
+		color: var(--accent) !important;
+		overflow-wrap: anywhere;
+	}
+
+	.link-portrait {
+		display: none;
+	}
+
+	/* desktop: a composição da cena de diálogo do jogo */
+	@media (min-width: 56rem) {
+		.link-scene {
+			grid-template-columns: minmax(0, 1fr) minmax(19rem, 25rem) clamp(11rem, 16vw, 15rem);
+			grid-template-areas:
+				'rank   choices portrait'
+				'dialog dialog  portrait';
+			gap: 0;
+			align-items: end;
+		}
+
+		/* o rank ocupa o espaço acima da fala, à esquerda das escolhas */
+		.rank {
+			grid-area: rank;
+			align-self: end;
+			max-width: 26rem;
+			margin: 0 2rem 2.5rem 0.5rem;
+		}
+
+		.link-choices {
+			grid-area: choices;
+			z-index: 1;
+			margin: 0 1.25rem -0.6rem 0;
+		}
+
+		:global(.link-talk) {
+			grid-area: dialog;
+			margin-right: -3rem;
+			padding-right: 4.5rem !important;
+		}
+
+		/* retrato na ponta, sobreposto ao diálogo (como o personagem ao lado da fala no jogo) */
+		.link-portrait {
+			grid-area: portrait;
+			z-index: 2;
+			display: block;
+			align-self: end;
+			margin-left: -1rem;
+		}
+
+		.bust {
+			width: 100%;
+			height: auto;
+		}
+
+		.bust-back {
+			fill: var(--azure);
+		}
+
+		.bust-front {
+			fill: var(--deep);
+			stroke: var(--azure);
+			stroke-width: 5;
+		}
+
+		/* foto recortada: busto (da cabeça ao peito) com a sombra azul deslocada, como os retratos do jogo */
+		.bust-photo {
+			aspect-ratio: 3 / 4;
+			overflow: hidden;
+			padding: 12px 14px 0 0;
+		}
+
+		.bust-photo img {
+			width: 100%;
+			height: auto;
+			filter: drop-shadow(12px -10px 0 var(--azure));
+		}
+	}
+</style>

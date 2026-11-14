@@ -1,0 +1,340 @@
+---
+import StageHead from './StageHead.astro';
+import Talk from './Talk.astro';
+import { profile, type Lang } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+const lang = Astro.props.lang as Lang;
+const t = useT(lang);
+const years = Math.max(1, new Date().getFullYear() - profile.startedCodingYear);
+const [first] = profile.name.split(' ');
+
+/** 0–100 vira um rank de 1 a 6, como os atributos sociais do jogo. */
+const rankOf = (v: number) => Math.min(6, Math.max(1, Math.ceil(v / (100 / 6))));
+---
+
+<section class="stage" id="player" data-stage aria-labelledby="player-title">
+	<div class="container">
+		<StageHead id="player-title" title={t('player.title')} help={t('help.player')} />
+
+		<div class="status">
+			<aside class="status-card panel" data-reveal>
+				<div class="status-photo slant">
+					{
+						profile.photo ? (
+							<img class="unslant" src={profile.photo} alt={t('hero.photo')} width={profile.photoSize.width} height={profile.photoSize.height} loading="lazy" />
+						) : (
+							<svg class="unslant" viewBox="0 0 260 300" aria-hidden="true">
+								<circle cx="130" cy="110" r="58" class="silhouette" />
+								<path d="M30 300 C 36 214, 76 176, 130 176 S 224 214, 230 300 Z" class="silhouette" />
+							</svg>
+						)
+					}
+				</div>
+				<div class="status-id">
+					<span class="tag"><span>LV {years}</span></span>
+					<h3>{profile.name}</h3>
+					<p>{profile.role[lang]}</p>
+				</div>
+				<dl class="status-meta">
+					<div>
+						<dt>{t('player.level')}</dt>
+						<dd>{years} {t(years === 1 ? 'player.year' : 'player.years')}</dd>
+					</div>
+					<div>
+						<dt>{t('player.origin')}</dt>
+						<dd>{profile.location[lang]}</dd>
+					</div>
+					<div>
+						<dt>{t('player.languages')}</dt>
+						<dd>{profile.languages[lang]}</dd>
+					</div>
+					<div>
+						<dt>{t('player.status')}</dt>
+						<dd class="status-ok">{t('player.online')}</dd>
+					</div>
+				</dl>
+				<a class="btn btn--light" href={profile.cvUrl} download={profile.cvUrl !== '#' ? '' : undefined}>
+					<span>{t('player.cv')}</span>
+				</a>
+			</aside>
+
+			<div class="status-main">
+				<div data-reveal>
+					<Talk speaker={first} class="status-bio">
+						{profile.bio[lang].map((p) => <p>{p}</p>)}
+					</Talk>
+				</div>
+
+				<div class="status-stats" data-reveal>
+					<h3>{t('player.attributes')}</h3>
+					<ul role="list">
+						{
+							profile.stats.map((s) => {
+								const rank = rankOf(s.value);
+								return (
+									<li>
+										<span class="stat-name">{s.label[lang]}</span>
+										<span class="stat-rank">{t(`rank.${rank}` as 'rank.1')}</span>
+										<span class="stat-pips" role="img" aria-label={`${s.label[lang]}: ${t(`rank.${rank}` as 'rank.1')}, ${rank}/6`}>
+											{Array.from({ length: 6 }, (_, i) => (
+												<i class={i < rank ? 'on' : undefined} />
+											))}
+										</span>
+									</li>
+								);
+							})
+						}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.status {
+		display: grid;
+		gap: clamp(1.25rem, 3vw, 2rem);
+		align-items: start;
+	}
+
+	.status-card {
+		display: grid;
+		gap: 1rem;
+		padding: 1.25rem;
+	}
+
+	.status-photo {
+		position: relative;
+		overflow: hidden;
+		aspect-ratio: 4 / 3;
+		/* a inclinação empurra os cantos para fora: a foto fica mais estreita que o cartão */
+		width: calc(100% - 3.5rem);
+		max-width: 20rem;
+		justify-self: center;
+		background: linear-gradient(180deg, var(--royal), var(--deep));
+		box-shadow: inset 0 0 0 2px rgb(244 247 255 / 0.4);
+	}
+
+	.status-photo > * {
+		position: absolute;
+		inset: 0 -20%;
+		width: 140%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* foto recortada: mostra do rosto aos ombros, com a sombra azul deslocada */
+	.status-photo img {
+		object-position: 50% 3%;
+		filter: drop-shadow(8px -6px 0 var(--azure));
+	}
+
+	.status-photo svg {
+		inset: auto -20% 0;
+		height: 88%;
+	}
+
+	.status-id {
+		display: grid;
+		justify-items: start;
+		gap: 0.3rem;
+	}
+
+	.status-id .tag {
+		font-size: 1rem;
+	}
+
+	.status-id h3 {
+		font-size: var(--title-sm);
+		font-weight: 900;
+		text-transform: uppercase;
+	}
+
+	.status-id p {
+		color: var(--accent);
+		font-size: var(--step--1);
+	}
+
+	.status-meta {
+		display: grid;
+		gap: 0.15rem;
+		font-size: var(--step--1);
+	}
+
+	.status-meta div {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.45rem 0;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.status-meta dt {
+		color: var(--muted);
+	}
+
+	.status-meta dd {
+		font-weight: 600;
+		text-align: right;
+	}
+
+	.status-ok {
+		color: var(--good);
+	}
+
+	.status-card .btn {
+		justify-self: start;
+		margin-left: 0.5rem;
+	}
+
+	.status-main {
+		display: grid;
+		gap: clamp(1.25rem, 3vw, 1.75rem);
+		min-width: 0;
+	}
+
+	:global(.status-bio) {
+		display: grid;
+		gap: 0.9rem;
+	}
+
+	:global(.status-bio) p {
+		max-width: 62ch;
+	}
+
+	.status-stats h3 {
+		font-size: var(--title-sm);
+		font-weight: 900;
+		text-transform: uppercase;
+		margin-bottom: 0.75rem;
+	}
+
+	.status-stats ul {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+		gap: 0.5rem 1.5rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* cada atributo é uma faixa inclinada: nome, rank e os pontos do rank */
+	.status-stats li {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'name rank'
+			'pips pips';
+		gap: 0.35rem 1rem;
+		padding: 0.6rem 1.1rem;
+		background: var(--panel);
+		box-shadow: inset 3px 0 0 var(--accent);
+	}
+
+	.stat-name {
+		grid-area: name;
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 800;
+		font-size: 1.3rem;
+		line-height: 1.1;
+	}
+
+	.stat-rank {
+		grid-area: rank;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: 1.1rem;
+		color: var(--accent);
+	}
+
+	.stat-pips {
+		grid-area: pips;
+		display: flex;
+		gap: 4px;
+	}
+
+	.stat-pips i {
+		flex: 1;
+		height: 0.4rem;
+		background: var(--track);
+		transform: skewX(var(--skew));
+	}
+
+	.stat-pips i.on {
+		background: var(--ink);
+	}
+
+	/* a partir do tablet o cartão vira uma faixa horizontal: foto à esquerda, dados ao lado */
+	@media (min-width: 36rem) {
+		.status-card {
+			grid-template-columns: 11rem minmax(0, 1fr);
+			grid-template-areas:
+				'photo id'
+				'photo meta'
+				'btn btn';
+			align-items: start;
+			column-gap: 1.5rem;
+		}
+
+		.status-photo {
+			grid-area: photo;
+			aspect-ratio: 3 / 4;
+		}
+
+		.status-id {
+			grid-area: id;
+		}
+
+		.status-meta {
+			grid-area: meta;
+		}
+
+		.status-card .btn {
+			grid-area: btn;
+		}
+
+		/* recua o balão para a cauda não passar da borda do cartão acima */
+		:global(.status-bio) {
+			margin-left: 2rem;
+		}
+	}
+
+	@media (min-width: 52rem) {
+		.status-card {
+			grid-template-columns: 12rem minmax(0, 0.9fr) minmax(0, 1.1fr);
+			grid-template-areas:
+				'photo id meta'
+				'photo btn meta';
+			grid-template-rows: auto 1fr;
+			column-gap: clamp(1.5rem, 3vw, 2.5rem);
+			padding: 1.25rem 1.75rem;
+		}
+
+		.status-photo {
+			aspect-ratio: 1;
+		}
+
+		.status-meta {
+			align-self: center;
+		}
+
+		.status-card .btn {
+			align-self: end;
+		}
+	}
+
+	/* fala e atributos lado a lado: as duas colunas têm altura parecida */
+	@media (min-width: 64rem) {
+		.status-main {
+			grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+			column-gap: clamp(1.5rem, 3vw, 2.5rem);
+			align-items: start;
+		}
+
+		.status-stats ul {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

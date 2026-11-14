@@ -1,0 +1,117 @@
+---
+/**
+ * Tecla desenhada (keycap) no estilo da UI: topo claro, lateral escura dando volume
+ * e o símbolo da tecla. Cada tecla tem o formato da real: Enter em "L" invertido,
+ * Esc retangular, Espaço comprida, setas e letras quadradas.
+ * Escala com o texto ao redor (altura em `em`) e usa as cores do tema.
+ */
+import type { Lang } from '../data/profile';
+
+export type KeyName = 'enter' | 'esc' | 'space' | 'up' | 'down' | 'left' | 'right' | 'a' | 'b' | 'd' | 'p';
+
+interface Props {
+	name: KeyName;
+	lang?: Lang;
+	class?: string;
+}
+
+const { name, lang = 'pt', class: className } = Astro.props;
+
+const labels: Record<Lang, Partial<Record<KeyName, string>>> = {
+	pt: { enter: 'Enter', esc: 'Esc', space: 'Espaço', up: 'Seta para cima', down: 'Seta para baixo', left: 'Seta para a esquerda', right: 'Seta para a direita' },
+	en: { enter: 'Enter', esc: 'Esc', space: 'Space', up: 'Up arrow', down: 'Down arrow', left: 'Left arrow', right: 'Right arrow' },
+};
+const label = labels[lang][name] ?? name.toUpperCase();
+
+// largura de cada formato (a altura é sempre 30)
+const W = name === 'enter' ? 44 : name === 'esc' ? 40 : name === 'space' ? 66 : 30;
+const H = 30;
+const r = 6;
+
+// Enter: "L" invertido — linha de cima inteira, a de baixo recuada à direita (formato ISO)
+const enterTop = `M${1 + r} 1 H${W - 1 - r} Q${W - 1} 1 ${W - 1} ${1 + r} V${22 - r} Q${W - 1} 22 ${W - 1 - r} 22 H${14 + r} Q14 22 14 ${22 - r} V${13} H${1 + r} Q1 13 1 ${13 - r} V${1 + r} Q1 1 ${1 + r} 1 Z`;
+const enterSide = `M${1 + r} 5 H${W - 1 - r} Q${W - 1} 5 ${W - 1} ${5 + r} V${H - 1 - r} Q${W - 1} ${H - 1} ${W - 1 - r} ${H - 1} H${14 + r} Q14 ${H - 1} 14 ${H - 1 - r} V17 H${1 + r} Q1 17 1 ${17 - r} V${5 + r} Q1 5 ${1 + r} 5 Z`;
+
+// setas: triângulo centrado no topo da tecla (centro em 15, 11.5)
+const arrow: Partial<Record<KeyName, string>> = {
+	up: 'M15 6 L21 15 H9 Z',
+	down: 'M15 17 L21 8 H9 Z',
+	left: 'M9 11.5 L18 5.5 V17.5 Z',
+	right: 'M21 11.5 L12 5.5 V17.5 Z',
+};
+const letter = name.length === 1 ? name.toUpperCase() : null;
+---
+
+<svg
+	class:list={['keycap', className]}
+	viewBox={`0 0 ${W} ${H}`}
+	style={`width:${(W / H) * 1.5}em`}
+	role="img"
+	aria-label={label}
+>
+	{
+		name === 'enter' ? (
+			<>
+				<path class="kc-side" d={enterSide} />
+				<path class="kc-top" d={enterTop} />
+				<path class="kc-glyph-line" d={`M${W - 9} 6 V15 H20 M20 15 L24 11.5 M20 15 L24 18.5`} />
+			</>
+		) : (
+			<>
+				<rect class="kc-side" x="1" y="5" width={W - 2} height={H - 6} rx={r} />
+				<rect class="kc-top" x="1" y="1" width={W - 2} height="21" rx={r} />
+				{arrow[name] && <path class="kc-glyph" d={arrow[name]} />}
+				{name === 'space' && <path class="kc-glyph-line" d={`M${W / 2 - 12} 9 V14 H${W / 2 + 12} V9`} />}
+				{name === 'esc' && (
+					<text class="kc-text" x={W / 2} y="12" text-anchor="middle" dominant-baseline="central">
+						Esc
+					</text>
+				)}
+				{letter && (
+					<text class="kc-text" x={W / 2} y="12" text-anchor="middle" dominant-baseline="central">
+						{letter}
+					</text>
+				)}
+			</>
+		)
+	}
+</svg>
+
+<style is:global>
+	.keycap {
+		display: inline-block;
+		height: 1.5em;
+		vertical-align: -0.38em;
+		overflow: visible;
+		flex: none;
+	}
+
+	.keycap .kc-top {
+		fill: var(--ink);
+	}
+
+	/* lateral: o "volume" da tecla, na cor do tema */
+	.keycap .kc-side {
+		fill: color-mix(in srgb, var(--azure) 55%, var(--deep));
+	}
+
+	.keycap .kc-glyph {
+		fill: var(--night);
+	}
+
+	.keycap .kc-glyph-line {
+		fill: none;
+		stroke: var(--night);
+		stroke-width: 2.4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.keycap .kc-text {
+		fill: var(--night);
+		font-family: var(--font-display);
+		font-style: italic;
+		font-weight: 900;
+		font-size: 13px;
+	}
+</style>

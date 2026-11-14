@@ -1,0 +1,64 @@
+---
+/**
+ * Bandeira em SVG (não emoji), simplificada para ficar nítida em tamanho de ícone.
+ * 'br' = Brasil (português), 'us' = Estados Unidos (inglês).
+ */
+interface Props {
+	code: 'br' | 'us';
+	class?: string;
+}
+
+const { code, class: className } = Astro.props;
+
+// EUA: 13 listras e o cantão com uma grade de estrelas (pontos)
+const stripes = Array.from({ length: 13 }, (_, i) => i);
+const stars: [number, number][] = [];
+for (let row = 0; row < 5; row++) {
+	for (let col = 0; col < (row % 2 ? 5 : 6); col++) {
+		stars.push([1.2 + col * 2.1 + (row % 2 ? 1.05 : 0), 1.1 + row * 2.1]);
+	}
+}
+---
+
+<svg class:list={['flag', className]} viewBox="0 0 30 20" aria-hidden="true" focusable="false">
+	<defs>
+		<clipPath id={`flag-clip-${code}`}>
+			<rect width="30" height="20" rx="2.5"></rect>
+		</clipPath>
+	</defs>
+	<g clip-path={`url(#flag-clip-${code})`}>
+		{
+			code === 'br' ? (
+				<>
+					<rect width="30" height="20" fill="#009c3b" />
+					<path d="M15 2.4 L27.2 10 L15 17.6 L2.8 10 Z" fill="#ffdf00" />
+					<circle cx="15" cy="10" r="4.6" fill="#002776" />
+					<path d="M10.5 9.1 Q15 7.6 19.4 10.6" fill="none" stroke="#fff" stroke-width="0.9" />
+				</>
+			) : (
+				<>
+					<rect width="30" height="20" fill="#fff" />
+					{stripes.map((i) => i % 2 === 0 && <rect y={(i * 20) / 13} width="30" height={20 / 13} fill="#b22234" />)}
+					<rect width="13" height={(20 / 13) * 7} fill="#3c3b6e" />
+					{stars.map(([x, y]) => <circle cx={x} cy={y} r="0.42" fill="#fff" />)}
+				</>
+			)
+		}
+	</g>
+	<rect class="flag-edge" x="0.5" y="0.5" width="29" height="19" rx="2.2" fill="none"></rect>
+</svg>
+
+<style is:global>
+	.flag {
+		display: block;
+		width: 1.75rem;
+		height: auto;
+		flex: none;
+	}
+
+	/* contorno claro sutil, para a bandeira não se perder no fundo escuro */
+	.flag .flag-edge {
+		stroke: rgb(255 255 255 / 0.55);
+		stroke-width: 1;
+	}
+</style>

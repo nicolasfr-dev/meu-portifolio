@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import Boot from './Boot.astro';
+import Hud from './Hud.astro';
+import Hero from './Hero.astro';
+import Player from './Player.astro';
+import Inventory from './Inventory.astro';
+import Quests from './Quests.astro';
+import Campaign from './Campaign.astro';
+import Education from './Education.astro';
+import Contact from './Contact.astro';
+import Footer from './Footer.astro';
+import type { Lang } from '../data/profile';
+import { useT } from '../i18n/ui';
+
+interface Props {
+	lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useT(lang);
+
+/** Menu de comandos: mesma lista no hero, na HUD e no menu de pausa. */
+const nav = [
+	{ id: 'quests', label: t('nav.quests'), help: t('help.quests') },
+	{ id: 'player', label: t('nav.player'), help: t('help.player') },
+	{ id: 'inventory', label: t('nav.inventory'), help: t('help.inventory') },
+	{ id: 'campaign', label: t('nav.campaign'), help: t('help.campaign') },
+	{ id: 'education', label: t('nav.education'), help: t('help.education') },
+	{ id: 'contact', label: t('nav.contact'), help: t('help.contact') },
+];
+---
+
+<Base lang={lang} boot>
+	<Boot lang={lang} />
+	<Hud lang={lang} nav={nav} />
+	<main id="main">
+		<Hero lang={lang} nav={nav} />
+		<Player lang={lang} />
+		<Inventory lang={lang} />
+		<Quests lang={lang} />
+		<Campaign lang={lang} />
+		<Education lang={lang} />
+		<Contact lang={lang} />
+	</main>
+	<Footer lang={lang} />
+</Base>
