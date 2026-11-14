@@ -1,0 +1,121 @@
+---
+import '../styles/global.css';
+import { Font } from 'astro:assets';
+import Toasts from '../components/Toasts.astro';
+import AchievementsPanel from '../components/AchievementsPanel.astro';
+import { profile, type Lang } from '../data/profile';
+import { useT, altLang, pathFor } from '../i18n/ui';
+
+interface Props {
+	lang: Lang;
+	title?: string;
+	description?: string;
+	/** Mostra a tela de "INSERT COIN" na primeira visita da sessão. */
+	boot?: boolean;
+	noindex?: boolean;
+}
+
+const { lang, boot = false, noindex = false } = Astro.props;
+const t = useT(lang);
+const title = Astro.props.title ?? t('meta.title');
+const description = Astro.props.description ?? t('meta.description');
+const site = Astro.site ?? new URL('https://example.com');
+const canonical = new URL(Astro.url.pathname, site);
+const other = altLang(lang);
+
+const jsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'Person',
+	name: profile.name,
+	alternateName: profile.fullName,
+	address: { '@type': 'PostalAddress', addressLocality: 'Fortaleza', addressCountry: 'BR' },
+	jobTitle: profile.role[lang],
+	url: site.href,
+	email: `mailto:${profile.email}`,
+	sameAs: profile.socials.filter((s) => s.url.startsWith('http')).map((s) => s.url),
+};
+---
+
+<!doctype html>
+<html lang={lang === 'pt' ? 'pt-BR' : 'en'} data-lang={lang} data-boot={boot ? '' : undefined}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#061334" />
+		<meta name="color-scheme" content="dark" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		{noindex && <meta name="robots" content="noindex" />}
+		<link rel="canonical" href={canonical} />
+		{
+			!noindex && (
+				<>
+					<link rel="alternate" hreflang="pt-BR" href={new URL(pathFor('pt'), site)} />
+					<link rel="alternate" hreflang="en" href={new URL(pathFor('en'), site)} />
+					<link rel="alternate" hreflang="x-default" href={new URL(pathFor('pt'), site)} />
+				</>
+			)
+		}
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" sizes="32x32" />
+
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:locale" content={lang === 'pt' ? 'pt_BR' : 'en_US'} />
+		<meta property="og:locale:alternate" content={other === 'pt' ? 'pt_BR' : 'en_US'} />
+		<meta name="twitter:card" content="summary" />
+
+		<Font cssVariable="--font-display" preload={[{ weight: '900', style: 'italic' }, { weight: '800', style: 'italic' }]} />
+		<Font cssVariable="--font-body" preload />
+		<Font cssVariable="--font-talk" />
+
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+		<!-- Roda antes da primeira pintura: evita "piscar" do tema/boot -->
+		<script is:inline>
+			(function () {
+				var d = document.documentElement;
+				d.classList.add('js');
+				// Hora Sombria: já entra verde, sem piscar o azul antes do script principal
+				if (new Date().getHours() === 0) d.dataset.hour = 'dark';
+				try {
+					var s = JSON.parse(localStorage.getItem('dh:v1') || '{}');
+					if (s.cheat) {
+						d.dataset.cheat = 'crimson';
+						var m = document.querySelector('meta[name="theme-color"]');
+						if (m) m.setAttribute('content', '#1c0611');
+					}
+				} catch (e) {}
+				try {
+					if (
+						d.hasAttribute('data-boot') &&
+						!sessionStorage.getItem('dh:booted') &&
+						!matchMedia('(prefers-reduced-motion: reduce)').matches
+					)
+						d.classList.add('booting');
+				} catch (e) {}
+				// entrada do hero: as peças ficam escondidas até a sequência começar.
+				// Trava de segurança: se algum script falhar, tudo aparece mesmo assim.
+				try {
+					if (d.hasAttribute('data-boot') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+						d.classList.add('hero-pending');
+						setTimeout(function () {
+							d.classList.remove('hero-pending');
+						}, 4500);
+					}
+				} catch (e) {}
+			})();
+		</script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">{t('skip')}</a>
+		<slot />
+		<Toasts />
+		<AchievementsPanel lang={lang} />
+		<script>
+			import '../scripts/main';
+		</script>
+	</body>
+</html>
