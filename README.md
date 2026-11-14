@@ -15,7 +15,7 @@ Sem bun? `npx astro dev` funciona igual.
 
 ## Personalizando
 
-Quase tudo o que é "seu" está em **`src/data/profile.ts`**: nome, foto, bio, atributos, equipamento (stack), requests (projetos de autoria própria), calendário (experiência e os projetos de cada cargo, que abrem num modal), educação (formação e certificados), música do "Tocando agora" e redes sociais. Os campos bilíngues usam `{ pt, en }`.
+Quase tudo o que é "seu" está em **`src/data/profile.ts`**: nome, foto, bio, atributos, equipamento (stack), requests (projetos de autoria própria), calendário (experiência e os projetos de cada cargo, que abrem num modal), educação (formação e certificados) e redes sociais. Os campos bilíngues usam `{ pt, en }`.
 
 | O quê                         | Onde                                   |
 | :---------------------------- | :------------------------------------- |

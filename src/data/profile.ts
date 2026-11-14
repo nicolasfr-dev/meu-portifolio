@@ -30,8 +30,6 @@ export const profile = {
 	 */
 	photo: withBase('/nicolas.webp'),
 	photoSize: { width: 591, height: 1330 },
-	/** Música do "Tocando agora" no hero. */
-	nowPlaying: { song: '[Sua música favorita]', artist: '[Artista]' }, // TODO
 	tagline: {
 		pt: 'Produtos web e mobile para pagamentos B2B, da interface à API.',
 		en: 'Web and mobile products for B2B payments, from the interface to the API.',
